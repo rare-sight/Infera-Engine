@@ -121,7 +121,8 @@ Infera-Engine/
 
 ### Language Models
 
-- Grok API
+- Groq API
+- Llama 3
 
 ### Knowledge Representation
 
