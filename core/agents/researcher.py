@@ -1,48 +1,43 @@
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage
 from core.models import get_groq_llm
 from core.tools.search import web_search
 
 
 def run_research_agent(topic: str, questions: list[str]) -> str:
     """
-    Research Agent with iterative search capability.
-    It can call the search tool multiple times.
+    Research Agent (stable version)
+    - Manually runs web search for each question
+    - Then asks Groq to synthesize the findings
     """
     llm = get_groq_llm()
-    tools = [web_search]
-    llm_with_tools = llm.bind_tools(tools)
-
     collected_info = []
 
     for question in questions:
-        # First attempt
-        messages = [
-            SystemMessage(content="You are an expert research agent. Use the web_search tool when you need current information."),
-            HumanMessage(content=f"Research this question thoroughly: {question}\n\nMain topic context: {topic}")
-        ]
+        # 1. Search manually (no tool-calling issues)
+        search_query = f"{question} {topic}"
+        try:
+            search_result = web_search.invoke(search_query)
+        except Exception as e:
+            search_result = f"Search failed: {str(e)}"
 
-        response = llm_with_tools.invoke(messages)
+        collected_info.append(
+            f"### Research Question\n{question}\n\n### Search Results\n{search_result}\n"
+        )
 
-        # If tool calls are requested
-        if response.tool_calls:
-            for tool_call in response.tool_calls:
-                if tool_call["name"] == "web_search":
-                    query = tool_call["args"].get("query", question)
-                    search_result = web_search.invoke(query)
-                    collected_info.append(f"### {question}\n{search_result}\n")
-        else:
-            collected_info.append(f"### {question}\n{response.content}\n")
-
-    # Final synthesis
-    synthesis_prompt = f"""You are a research synthesizer.
-Combine the following research findings into one coherent, high-signal research brief (300-400 words).
-Focus on facts, recent developments, data, and emerging signals.
+    # 2. Synthesize with Groq
+    synthesis_prompt = f"""You are an expert intelligence researcher.
+Using the search results below, write a clear, factual research brief (300–400 words).
 
 Topic: {topic}
 
-Research Findings:
+Requirements:
+- Focus on recent developments, key events, data points, and emerging signals
+- Be specific and concrete
+- Avoid generic filler
+
+Search Findings:
 {''.join(collected_info)}
 """
 
-    final = llm.invoke([HumanMessage(content=synthesis_prompt)])
-    return final.content
+    response = llm.invoke([HumanMessage(content=synthesis_prompt)])
+    return response.content
