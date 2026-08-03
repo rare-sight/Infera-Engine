@@ -3,12 +3,12 @@ from pydantic import BaseModel, Field
 
 
 class Scenario(BaseModel):
-    name: str = Field(description="Short scenario name")
-    description: str = Field(description="4-6 sentence narrative")
+    name: str = Field(description="Short evocative scenario name")
+    description: str = Field(description="4-6 concrete sentences")
     probability: str = Field(description="High / Medium / Low")
-    probability_reason: str = Field(description="Short justification for the probability")
-    key_drivers: List[str] = Field(description="Main forces driving this future")
-    early_signals: List[str] = Field(description="Observable indicators that this scenario is emerging")
+    probability_reason: str = Field(description="One short sentence justifying the probability")
+    key_drivers: List[str] = Field(description="3-5 main drivers")
+    early_signals: List[str] = Field(description="3-4 observable early signals")
 
 
 class ScenarioSet(BaseModel):
