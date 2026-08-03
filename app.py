@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
-
+from core.memory import save_run
 from core.graph import build_infera_graph
 from ui.styles import load_css
 from ui.components import render_header, render_step_status, render_section, render_agent_log
@@ -109,6 +109,9 @@ if run_btn:
             state.update(result)
             with scenarios_box.container():
                 render_section("SCENARIOS + RED TEAM CRITIQUE", state["scenarios_text"])
+
+            save_path = save_run(topic.strip(), state)
+            st.caption(f"Saved to memory: `{save_path}`")
 
             with status_box.container():
                 render_step_status("complete")
