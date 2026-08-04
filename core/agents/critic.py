@@ -3,26 +3,36 @@ from core.models import get_groq_llm
 
 
 def critique_scenarios(topic: str, scenarios_text: str, research: str) -> str:
-    """Critic Agent (Red Team): Challenges and improves the scenarios."""
+    """
+    Red Team critic — qualitative only.
+    Must NOT assign High/Medium/Low or numeric scores.
+    """
     llm = get_groq_llm()
 
-    prompt = f"""You are a Red Team critic inside an intelligence unit.
-Your job is to rigorously challenge the scenarios below.
+    prompt = f"""You are a Red Team critic reviewing forecasting scenarios.
 
 Topic: {topic}
 
 Research Brief:
 {research}
 
-Scenarios to critique:
+Scenarios:
 {scenarios_text}
 
-Instructions:
-1. Point out weaknesses, assumptions, or blind spots in each scenario.
-2. Suggest one concrete improvement for each scenario.
-3. Then provide a short refined version of the strongest scenario.
+For EACH scenario provide:
+1. Weaknesses / shaky assumptions
+2. Blind spots
+3. One concrete improvement suggestion
 
-Be direct and analytical.
+Then propose one refined strongest scenario as plain analysis:
+- what should change in the forecast
+- what evidence factors should be weighted differently
+- refinement rationale
+
+STRICT RULE:
+Do NOT write probability labels (High/Medium/Low), percentages, or scores.
+Those are computed only by the scoring pipeline, not by you.
+If you want to express confidence, describe the evidence factors instead.
 """
 
     response = llm.invoke([HumanMessage(content=prompt)])
