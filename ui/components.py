@@ -16,24 +16,34 @@ def render_header():
 
 def render_step_status(current_step: str):
     steps = [
-        ("analyze", "01  Analyst"),
-        ("research", "02  Research Agent"),
-        ("uncertainties", "03  Uncertainty"),
-        ("scenarios", "04  Scenario + Critic"),
+        ("entity", "01 Entity"),
+        ("research", "02 Research"),
+        ("reconcile", "03 Reconcile"),
+        ("analyze", "04 Analyst"),
+        ("uncertainties", "05 Uncertainties"),
+        ("scenarios", "06 Scenario+Critic"),
     ]
-
-    order = ["analyze", "research", "uncertainties", "scenarios", "complete"]
+    order = ["entity", "research", "reconcile", "analyze", "uncertainties", "scenarios", "complete"]
     current_idx = order.index(current_step) if current_step in order else -1
 
-    cols = st.columns(4)
+    cols = st.columns(6)
     for i, (key, label) in enumerate(steps):
         with cols[i]:
             if i < current_idx:
-                st.markdown(f"<div style='color:#3fb950; font-size:0.82rem;'>{label} ✓</div>", unsafe_allow_html=True)
+                st.markdown(
+                    f"<div style='color:#3fb950; font-size:0.72rem;'>{label} ✓</div>",
+                    unsafe_allow_html=True,
+                )
             elif i == current_idx:
-                st.markdown(f"<div style='color:#58a6ff; font-size:0.82rem; font-weight:500;'>{label} →</div>", unsafe_allow_html=True)
+                st.markdown(
+                    f"<div style='color:#58a6ff; font-size:0.72rem; font-weight:500;'>{label} →</div>",
+                    unsafe_allow_html=True,
+                )
             else:
-                st.markdown(f"<div style='color:#484f58; font-size:0.82rem;'>{label}</div>", unsafe_allow_html=True)
+                st.markdown(
+                    f"<div style='color:#484f58; font-size:0.72rem;'>{label}</div>",
+                    unsafe_allow_html=True,
+                )
 
 
 def render_section(title: str, content: str):
