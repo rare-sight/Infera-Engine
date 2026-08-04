@@ -1,22 +1,56 @@
-from typing import TypedDict, List, Optional
+from typing import TypedDict, List, Optional, Literal
 from pydantic import BaseModel, Field
 
 
+class EntityCard(BaseModel):
+    name: str
+    entity_type: Literal["person", "organization", "policy", "event", "product", "other"]
+    jurisdiction: str
+    role_or_context: str
+    disambiguation_note: str = ""
+    confidence: Literal["high", "medium", "low"] = "medium"
+    resolution_stage: Literal["provisional", "reconciled"] = "provisional"
+
+
+class EvidenceFactor(BaseModel):
+    factor: str
+    supports_forecast: bool  # True if makes THIS scenario's claim more likely
+    strength: Literal["strong", "moderate", "weak"]
+    reason: str
+
+
+class ScoreComponents(BaseModel):
+    factors: List[EvidenceFactor] = Field(min_length=3, max_length=6)
+
+
 class Scenario(BaseModel):
-    name: str = Field(description="Short evocative scenario name")
-    description: str = Field(description="4-6 concrete sentences")
-    probability: str = Field(description="High / Medium / Low")
-    probability_reason: str = Field(description="One short sentence justifying the probability")
-    key_drivers: List[str] = Field(description="3-5 main drivers")
-    early_signals: List[str] = Field(description="3-4 observable early signals")
+    scenario_name: str
+    time_horizon: Literal["3-6mo", "6-12mo", "1-3yr"]
+    forecast_statement: str
+    inferred_from: List[str]
+    evidence_for: List[str]
+    evidence_against: List[str]
+    score_components: ScoreComponents
+    score: float = 0.0
+    probability_label: Literal["Low", "Medium", "High"] = "Low"
+    probability_reason: str = ""
 
 
 class ScenarioSet(BaseModel):
     scenarios: List[Scenario]
 
 
+class BaseRateEstimate(BaseModel):
+    reference_class: str
+    estimated_base_rate_pct: int = Field(ge=0, le=100)
+    base_rate_reasoning: str
+    comparable_cases: List[str] = []
+
+
 class InferaState(TypedDict):
     topic: str
+    entity_card: Optional[dict]
+    base_rate: Optional[dict]
     analysis: str
     research: str
     uncertainties: str
