@@ -1,7 +1,7 @@
 from langchain_core.messages import HumanMessage
 
 from core.agents.entity import entity_card_to_context
-from core.models import get_local_llm
+from core.models import get_low_power_llm
 from core.state import InferaState
 
 
@@ -20,7 +20,7 @@ def analyze_topic(state: InferaState) -> dict:
             "Run Entity Reconciliation after Research first."
         )
 
-    llm = get_local_llm()
+    llm = get_low_power_llm()
     entity_ctx = entity_card_to_context(entity_raw)
 
     prompt = f"""You are a strategic foresight analyst.

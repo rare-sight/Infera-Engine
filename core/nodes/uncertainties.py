@@ -1,11 +1,11 @@
 from langchain_core.messages import HumanMessage
 
-from core.models import get_local_llm
+from core.models import get_low_power_llm
 from core.state import InferaState
 
 
 def identify_uncertainties(state: InferaState) -> dict:
-    llm = get_local_llm()
+    llm = get_low_power_llm()
     topic = state["topic"]
     analysis = state["analysis"]
     research = state["research"]

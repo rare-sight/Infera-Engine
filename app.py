@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 from core.graph import build_infera_graph
 from core.memory import save_run
+from core.models import DEFAULT_GROQ_MODEL, configure_models
 from ui.components import render_agent_log, render_header, render_section, render_step_status
 from ui.styles import load_css
 
@@ -34,6 +35,32 @@ with st.sidebar:
     st.markdown("---")
     st.caption("v0.6 • Grounded Forecasting")
 
+    st.markdown("---")
+    st.markdown("**Model settings**")
+    model_options = {
+        "GPT-OSS 120B (recommended)": "openai/gpt-oss-120b",
+        "Llama 3.3 70B (requires Groq account access)": "llama-3.3-70b-versatile",
+    }
+    configured_model = os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL)
+    default_label = next(
+        (label for label, model_id in model_options.items() if model_id == configured_model),
+        "GPT-OSS 120B (recommended)",
+    )
+    selected_label = st.selectbox(
+        "Groq reasoning model",
+        options=list(model_options),
+        index=list(model_options).index(default_label),
+        help="Llama 3.3 remains available only to Groq accounts with access to it.",
+    )
+    use_local_low_power = st.toggle(
+        "Use local LLM for low-power tasks",
+        help="Routes only analysis and uncertainty extraction to Ollama; all other stages stay on Groq.",
+    )
+    local_model = "qwen3:8b"
+    if use_local_low_power:
+        local_model = st.text_input("Local Ollama model", value=os.getenv("OLLAMA_MODEL", local_model))
+        st.caption("Requires Ollama running at http://localhost:11434.")
+
 # Main
 render_header()
 
@@ -51,6 +78,11 @@ if run_btn:
     elif not os.getenv("GROQ_API_KEY"):
         st.error("GROQ_API_KEY missing")
     else:
+        configure_models(
+            groq_model=model_options[selected_label],
+            use_local_low_power=use_local_low_power,
+            local_model=local_model,
+        )
         graph = build_infera_graph()
 
         status_box = st.empty()

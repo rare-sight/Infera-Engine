@@ -12,7 +12,7 @@ copy .env.example .env  # Windows
 python -m streamlit run app.py
 ```
 
-Set `GROQ_API_KEY` in `.env` before running an analysis. The local analysis and uncertainty stages also expect Ollama at `http://localhost:11434` with `qwen3:8b` available.
+Set `GROQ_API_KEY` in `.env` before running an analysis. The sidebar lets users choose Groq's `openai/gpt-oss-120b` (the supported developer-tier default) or `llama-3.3-70b-versatile` for Groq accounts that have access to that Llama model. Users can also opt into Ollama for only the lower-power analysis and uncertainty stages; all other stages remain on Groq. Set `OLLAMA_BASE_URL` and `OLLAMA_MODEL` in `.env` when using that option.
 
 For a containerized local run, copy `.env.example` to `.env`, fill in the key, and run `docker compose up --build`. The app is then available at `http://localhost:8501`.
 
