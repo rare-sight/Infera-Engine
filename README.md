@@ -2,6 +2,26 @@
 
 An evidence-driven multi-agent reasoning system for analyzing evolving events, evaluating competing hypotheses, and generating explainable forecasts.
 
+## Quick start
+
+Python 3.11 or later is required. Create and activate a virtual environment, then install the application and development tools:
+
+```bash
+python -m pip install -e ".[dev]"
+copy .env.example .env  # Windows
+python -m streamlit run app.py
+```
+
+Set `GROQ_API_KEY` in `.env` before running an analysis. The local analysis and uncertainty stages also expect Ollama at `http://localhost:11434` with `qwen3:8b` available.
+
+For a containerized local run, copy `.env.example` to `.env`, fill in the key, and run `docker compose up --build`. The app is then available at `http://localhost:8501`.
+
+## Quality and delivery
+
+GitHub Actions runs linting, formatting, tests, and dependency validation for pull requests and default-branch changes. CodeQL scans Python weekly, and Dependabot proposes weekly dependency and GitHub Actions updates. Pushing a version tag such as `v0.1.0` publishes a container image to GitHub Container Registry as `ghcr.io/<owner>/infera-engine`.
+
+Run the same checks locally with `make check` (or the individual commands in `CONTRIBUTING.md`).
+
 ## Overview
 
 Infera Engine is designed to analyze complex, rapidly changing topics by combining evidence from multiple sources into a structured reasoning pipeline.
