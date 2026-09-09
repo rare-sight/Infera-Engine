@@ -7,6 +7,19 @@ __pycache__/
 
 # Secrets
 .env
+.env.*
+!.env.example
+
+# Streamlit local credentials
+.streamlit/secrets.toml
+
+# Test and tool output
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
 
 # VS Code
 .vscode/
