@@ -1,4 +1,5 @@
 from langchain_core.messages import HumanMessage
+
 from core.models import get_groq_llm
 from core.state import EntityCard
 
@@ -38,12 +39,12 @@ def reconcile_entity(provisional: dict, research_brief: str) -> EntityCard:
     prompt = f"""You are reconciling a PROVISIONAL entity card against a REAL research brief.
 
 PROVISIONAL CARD:
-- Name: {provisional.get('name')}
-- Type: {provisional.get('entity_type')}
-- Jurisdiction: {provisional.get('jurisdiction')}
-- Role: {provisional.get('role_or_context')}
-- Note: {provisional.get('disambiguation_note')}
-- Confidence: {provisional.get('confidence')}
+- Name: {provisional.get("name")}
+- Type: {provisional.get("entity_type")}
+- Jurisdiction: {provisional.get("jurisdiction")}
+- Role: {provisional.get("role_or_context")}
+- Note: {provisional.get("disambiguation_note")}
+- Confidence: {provisional.get("confidence")}
 
 RESEARCH BRIEF (trust this over the provisional guess when they conflict):
 {research_brief}

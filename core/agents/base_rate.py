@@ -1,7 +1,8 @@
 from langchain_core.messages import HumanMessage
+
+from core.agents.entity import entity_card_to_context
 from core.models import get_groq_llm
 from core.state import BaseRateEstimate
-from core.agents.entity import entity_card_to_context
 
 
 def estimate_base_rate_for_scenario(

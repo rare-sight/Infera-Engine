@@ -1,7 +1,8 @@
 from langchain_core.messages import HumanMessage
-from core.models import get_local_llm
-from core.state import InferaState, EntityCard
+
 from core.agents.entity import entity_card_to_context
+from core.models import get_local_llm
+from core.state import InferaState
 
 
 def analyze_topic(state: InferaState) -> dict:
@@ -33,7 +34,7 @@ Do not introduce agencies, laws, countries, or programs not present in the resea
 RESEARCH BRIEF:
 {research}
 
-Topic: {state['topic']}
+Topic: {state["topic"]}
 
 Respond in this format:
 

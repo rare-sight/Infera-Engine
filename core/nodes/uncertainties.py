@@ -1,4 +1,5 @@
 from langchain_core.messages import HumanMessage
+
 from core.models import get_local_llm
 from core.state import InferaState
 
@@ -29,7 +30,4 @@ Instructions:
 """
 
     response = llm.invoke([HumanMessage(content=prompt)])
-    return {
-        "uncertainties": response.content,
-        "current_step": "uncertainties_complete"
-    }
+    return {"uncertainties": response.content, "current_step": "uncertainties_complete"}

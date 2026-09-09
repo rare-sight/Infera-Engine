@@ -1,4 +1,5 @@
 from langchain_core.messages import HumanMessage
+
 from core.models import get_groq_llm
 from core.tools.search import web_search
 
@@ -36,7 +37,7 @@ Requirements:
 - Avoid generic filler
 
 Search Findings:
-{''.join(collected_info)}
+{"".join(collected_info)}
 """
 
     response = llm.invoke([HumanMessage(content=synthesis_prompt)])

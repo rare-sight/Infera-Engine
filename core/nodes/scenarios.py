@@ -1,11 +1,13 @@
 import difflib
+
 from langchain_core.messages import HumanMessage
-from core.models import get_groq_llm
+
+from core.agents.base_rate import estimate_base_rate_for_scenario
 from core.agents.critic import critique_scenarios
 from core.agents.entity import entity_card_to_context
-from core.agents.base_rate import estimate_base_rate_for_scenario
+from core.models import get_groq_llm
+from core.scoring import adjust_for_base_rate, compute_score, score_to_label
 from core.state import InferaState, ScenarioSet
-from core.scoring import compute_score, score_to_label, adjust_for_base_rate
 
 
 def is_near_duplicate(forecast: str, research: str, threshold: float = 0.75) -> bool:
@@ -93,9 +95,7 @@ Return structured ScenarioSet.
             direction = "supports" if f.supports_forecast else "opposes"
             factor_lines.append(f"{f.factor} ({direction}, {f.strength})")
         text_parts.append(f"**Factors:** {'; '.join(factor_lines)}\n")
-        text_parts.append(
-            f"**Comparable cases:** {', '.join(br.comparable_cases or [])}\n"
-        )
+        text_parts.append(f"**Comparable cases:** {', '.join(br.comparable_cases or [])}\n")
         text_parts.append("\n---\n\n")
 
     scenarios_text = "".join(text_parts)

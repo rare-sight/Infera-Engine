@@ -1,7 +1,6 @@
 import json
 import os
-from datetime import datetime
-from typing import Optional
+from datetime import UTC, datetime
 
 MEMORY_DIR = "memory"
 os.makedirs(MEMORY_DIR, exist_ok=True)
@@ -15,7 +14,7 @@ def _path(topic: str) -> str:
 def save_run(topic: str, result: dict) -> str:
     data = {
         "topic": topic,
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "analysis": result.get("analysis", ""),
         "research": result.get("research", ""),
         "uncertainties": result.get("uncertainties", ""),
@@ -28,11 +27,11 @@ def save_run(topic: str, result: dict) -> str:
     return path
 
 
-def load_run(topic: str) -> Optional[dict]:
+def load_run(topic: str) -> dict | None:
     path = _path(topic)
     if not os.path.exists(path):
         return None
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -41,7 +40,7 @@ def list_saved_topics() -> list[str]:
     topics = []
     for f in files:
         try:
-            with open(os.path.join(MEMORY_DIR, f), "r", encoding="utf-8") as fh:
+            with open(os.path.join(MEMORY_DIR, f), encoding="utf-8") as fh:
                 data = json.load(fh)
                 topics.append(data.get("topic", f.replace(".json", "")))
         except Exception:

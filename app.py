@@ -1,11 +1,12 @@
 import os
+
 import streamlit as st
 from dotenv import load_dotenv
 
 from core.graph import build_infera_graph
 from core.memory import save_run
+from ui.components import render_agent_log, render_header, render_section, render_step_status
 from ui.styles import load_css
-from ui.components import render_header, render_step_status, render_section, render_agent_log
 
 load_dotenv()
 

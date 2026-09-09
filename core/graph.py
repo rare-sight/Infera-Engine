@@ -1,12 +1,12 @@
-from langgraph.graph import StateGraph, START, END
-from core.state import InferaState
+from langgraph.graph import END, START, StateGraph
 
-from core.nodes.entity_node import entity_node
-from core.nodes.research import research_topic
-from core.nodes.reconcile_node import reconcile_node
 from core.nodes.analyze import analyze_topic
-from core.nodes.uncertainties import identify_uncertainties
+from core.nodes.entity_node import entity_node
+from core.nodes.reconcile_node import reconcile_node
+from core.nodes.research import research_topic
 from core.nodes.scenarios import generate_scenarios
+from core.nodes.uncertainties import identify_uncertainties
+from core.state import InferaState
 
 
 def build_infera_graph():
