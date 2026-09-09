@@ -2,7 +2,8 @@ import streamlit as st
 
 
 def render_header():
-    st.markdown("""
+    st.markdown(
+        """
     <div style="margin-bottom: 1.5rem;">
         <div style="font-size: 1.5rem; font-weight: 600; letter-spacing: 1.5px; color: #e6edf3;">
             INFERA
@@ -11,7 +12,9 @@ def render_header():
             MULTI-AGENT FORESIGHT SYSTEM
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_step_status(current_step: str):
@@ -27,7 +30,7 @@ def render_step_status(current_step: str):
     current_idx = order.index(current_step) if current_step in order else -1
 
     cols = st.columns(6)
-    for i, (key, label) in enumerate(steps):
+    for i, (_key, label) in enumerate(steps):
         with cols[i]:
             if i < current_idx:
                 st.markdown(
@@ -53,4 +56,7 @@ def render_section(title: str, content: str):
 
 
 def render_agent_log(message: str):
-    st.markdown(f"<div style='color:#8b949e; font-size:0.85rem; margin-bottom:0.5rem;'>→ {message}</div>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div style='color:#8b949e; font-size:0.85rem; margin-bottom:0.5rem;'>→ {message}</div>",
+        unsafe_allow_html=True,
+    )
