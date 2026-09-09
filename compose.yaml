@@ -1,0 +1,11 @@
+services:
+  infera:
+    build:
+      context: .
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
