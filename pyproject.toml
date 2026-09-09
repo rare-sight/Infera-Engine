@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "infera-engine"
+version = "0.1.0"
+description = "An evidence-driven multi-agent reasoning system for explainable forecasts."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Infera Engine contributors" }]
+dependencies = [
+    "ddgs>=9.0.0",
+    "langchain-core>=1.0.0",
+    "langchain-groq>=1.0.0",
+    "langchain-ollama>=1.0.0",
+    "langgraph>=1.0.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "streamlit>=1.60.0",
+]
+
+[project.optional-dependencies]
+dev = ["pre-commit>=4.0.0", "pytest>=8.0.0", "pytest-cov>=6.0.0", "ruff>=0.9.0"]
+
+[tool.setuptools.packages.find]
+include = ["core*", "ui*", "utils*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --cov=core --cov-report=term-missing"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = ["memory"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.coverage.run]
+branch = true
+source = ["core"]
+
+[tool.coverage.report]
+show_missing = true
