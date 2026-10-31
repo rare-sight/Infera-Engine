@@ -28,7 +28,7 @@ RULES:
 3. Give estimated_base_rate_pct 0-100.
 4. Name 1-3 comparable cases at similar scale, or say if none fit well.
 
-Return structured BaseRateEstimate.
+Return only a valid JSON object matching the BaseRateEstimate fields. Do not use Markdown.
 """
-    structured = llm.with_structured_output(BaseRateEstimate)
+    structured = llm.with_structured_output(BaseRateEstimate, method="json_mode")
     return structured.invoke([HumanMessage(content=prompt)])

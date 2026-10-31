@@ -26,8 +26,9 @@ Return:
 - resolution_stage must be "provisional"
 
 Be honest. If unsure, use medium/low confidence.
+Return only a valid JSON object matching the EntityCard fields. Do not use Markdown.
 """
-    structured = llm.with_structured_output(EntityCard)
+    structured = llm.with_structured_output(EntityCard, method="json_mode")
     card = structured.invoke([HumanMessage(content=prompt)])
     card.resolution_stage = "provisional"
     return card
@@ -54,9 +55,9 @@ Rules:
 2. If research confirms it, keep values and set confidence to high.
 3. Set resolution_stage to "reconciled".
 
-Return the corrected EntityCard.
+Return only a valid JSON object matching the EntityCard fields. Do not use Markdown.
 """
-    structured = llm.with_structured_output(EntityCard)
+    structured = llm.with_structured_output(EntityCard, method="json_mode")
     card = structured.invoke([HumanMessage(content=prompt)])
     card.resolution_stage = "reconciled"
     return card

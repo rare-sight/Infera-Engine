@@ -52,10 +52,10 @@ Example: "industry lobbying history"
   - for a PUSHBACK scenario → supports_forecast=true
 strength: strong | moderate | weak
 
-Return structured ScenarioSet.
+Return only a valid JSON object matching the ScenarioSet fields. Do not use Markdown.
 """
 
-    structured = llm.with_structured_output(ScenarioSet)
+    structured = llm.with_structured_output(ScenarioSet, method="json_mode")
     draft = structured.invoke([HumanMessage(content=draft_prompt)])
 
     finalized = []

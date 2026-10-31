@@ -16,6 +16,12 @@ Set `GROQ_API_KEY` in `.env` before running an analysis. The sidebar lets users 
 
 For a containerized local run, copy `.env.example` to `.env`, fill in the key, and run `docker compose up --build`. The app is then available at `http://localhost:8501`.
 
+### Model compatibility and structured-output limits
+
+Infera Engine is configured to use Groq by default. The supported default model is `openai/gpt-oss-120b`, and the app also supports `llama-3.3-70b-versatile` on Groq accounts that can access it. When using the optional low-power mode, Ollama can be enabled only for the lower-cost reasoning steps while the rest of the workflow remains on Groq.
+
+Structured Groq responses use JSON mode rather than requiring a tool call, then validate the result against the relevant Pydantic schema. This avoids failures when a model returns JSON as message text instead of making a required tool call. Scenario output is also kept intentionally concise: exactly three scenarios, short text fields, up to three evidence items in each list, and a maximum of four evidence factors per scenario.
+
 ## Quality and delivery
 
 GitHub Actions runs linting, formatting, tests, and dependency validation for pull requests and default-branch changes. CodeQL scans Python weekly, and Dependabot proposes weekly dependency and GitHub Actions updates. Pushing a version tag such as `v0.1.0` publishes a container image to GitHub Container Registry as `ghcr.io/<owner>/infera-engine`.
