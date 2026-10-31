@@ -58,7 +58,9 @@ with st.sidebar:
     )
     local_model = "qwen3:8b"
     if use_local_low_power:
-        local_model = st.text_input("Local Ollama model", value=os.getenv("OLLAMA_MODEL", local_model))
+        local_model = st.text_input(
+            "Local Ollama model", value=os.getenv("OLLAMA_MODEL", local_model)
+        )
         st.caption("Requires Ollama running at http://localhost:11434.")
 
 # Main
