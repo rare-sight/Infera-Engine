@@ -1,209 +1,187 @@
 # Infera Engine
 
-An evidence-driven multi-agent reasoning system for analyzing evolving events, evaluating competing hypotheses, and generating explainable forecasts.
+Infera Engine is a Streamlit application for researching developing topics and
+turning evidence into grounded analysis, key uncertainties, and explainable
+forecast scenarios.
+
+## Requirements
+
+- Python 3.11 or later
+- A Groq API key for analysis
+- Optional: Ollama running locally if you want to route analysis and uncertainty
+  extraction to a local model
+- Optional: Docker and Docker Compose for a containerized run
 
 ## Quick start
 
-Python 3.11 or later is required. Create and activate a virtual environment, then install the application and development tools:
+Create and activate a virtual environment, then install the project and its
+development tools.
+
+Windows PowerShell:
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+macOS or Linux:
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
-copy .env.example .env  # Windows
+```
+
+Create a `.env` file in the project root and add your Groq API key:
+
+```dotenv
+GROQ_API_KEY=your_groq_api_key
+```
+
+Do not commit `.env` or share its contents. Start the application with:
+
+```bash
 python -m streamlit run app.py
 ```
 
-Set `GROQ_API_KEY` in `.env` before running an analysis. The sidebar lets users choose Groq's `openai/gpt-oss-120b` (the supported developer-tier default) or `llama-3.3-70b-versatile` for Groq accounts that have access to that Llama model. Users can also opt into Ollama for only the lower-power analysis and uncertainty stages; all other stages remain on Groq. Set `OLLAMA_BASE_URL` and `OLLAMA_MODEL` in `.env` when using that option.
+Streamlit prints the local URL when the server starts.
 
-For a containerized local run, copy `.env.example` to `.env`, fill in the key, and run `docker compose up --build`. The app is then available at `http://localhost:8501`.
+## Models and rate limiting
 
-### Model compatibility and structured-output limits
+The app uses Groq by default, with `openai/gpt-oss-120b` selected initially.
+`llama-3.3-70b-versatile` is also available to Groq accounts that have access
+to it. Set `GROQ_MODEL` in `.env` to select the initial sidebar model.
 
-Infera Engine is configured to use Groq by default. The supported default model is `openai/gpt-oss-120b`, and the app also supports `llama-3.3-70b-versatile` on Groq accounts that can access it. When using the optional low-power mode, Ollama can be enabled only for the lower-cost reasoning steps while the rest of the workflow remains on Groq.
+The sidebar can optionally route the analysis and uncertainty stages through
+Ollama. Scenario generation, entity resolution, research planning and synthesis,
+and scenario critique continue to use Groq. Set `OLLAMA_BASE_URL` or
+`OLLAMA_MODEL` in `.env` to configure the local Ollama endpoint and initial
+model; the defaults are `http://localhost:11434` and `qwen3:8b`.
 
-Structured Groq responses use JSON mode rather than requiring a tool call, then validate the result against the relevant Pydantic schema. This avoids failures when a model returns JSON as message text instead of making a required tool call. Scenario output is also kept intentionally concise: exactly three scenarios, short text fields, up to three evidence items in each list, and a maximum of four evidence factors per scenario.
+Groq requests share a process-local rolling budget of up to 8,000 estimated
+tokens per 60 seconds, including prompt and output tokens. Calls proceed without
+a fixed delay when budget is available and wait when recent usage requires it.
+The limiter reserves the requested output allowance and reconciles it with
+provider-reported usage when available. It cannot account for requests made by
+other applications or users sharing the same Groq quota.
 
-## Quality and delivery
+## Workflow
 
-GitHub Actions runs linting, formatting, tests, and dependency validation for pull requests and default-branch changes. CodeQL scans Python weekly, and Dependabot proposes weekly dependency and GitHub Actions updates. Pushing a version tag such as `v0.1.0` publishes a container image to GitHub Container Registry as `ghcr.io/<owner>/infera-engine`.
+The LangGraph workflow runs these stages in order:
 
-Run the same checks locally with `make check` (or the individual commands in `CONTRIBUTING.md`).
+1. Resolve a provisional entity card for the topic.
+2. Plan research questions, search the web, and synthesize the findings.
+3. Reconcile the entity card against the research.
+4. Analyze the research and identify key uncertainties.
+5. Generate three structured scenarios and a qualitative red-team critique.
 
-## Overview
+The research stage uses web search results and asks the model to cite sources.
+Check the source links and dates, especially for current figures and forecasts.
+Scenario records include a time horizon, forecast, evidence for and against,
+and 3–6 evidence factors. The app does not assign an overall scenario
+confidence or probability rating.
 
-Infera Engine is designed to analyze complex, rapidly changing topics by combining evidence from multiple sources into a structured reasoning pipeline.
-
-Rather than producing a single answer from a language model, Infera decomposes the problem into specialized stages. Each stage contributes a well-defined output that is used by the next stage, resulting in forecasts that can be traced back to the supporting evidence.
-
-The system is intended for analytical tasks such as policy analysis, geopolitical events, market intelligence, technology trends, and other domains where conclusions must be supported by verifiable information.
-
----
-
-## Objectives
-
-- Collect evidence from multiple sources
-- Extract structured claims and entities
-- Identify relationships between entities
-- Detect conflicting information
-- Evaluate multiple hypotheses
-- Generate explainable future scenarios
-- Produce transparent analytical reports
-
----
+After a run, the app attempts to save the research and analysis as JSON files
+under `memory/`. These files are local application data; do not commit sensitive
+or private research.
 
 ## Architecture
 
-```
-                    External Sources
-                           │
-                           ▼
-                 Evidence Collection
-                           │
-                           ▼
-                    Research Agent
-                           │
-                           ▼
-                    Planner Agent
-                           │
-                           ▼
-                Evidence Processing
-                           │
-                           ▼
-                  Claim Extraction
-                           │
-                           ▼
-                  Entity Extraction
-                           │
-                           ▼
-               Knowledge Graph Builder
-                           │
-                           ▼
-              Contradiction Detection
-                           │
-                           ▼
-               Scenario Generation
-                           │
-                           ▼
-                    Critic Agent
-                           │
-                           ▼
-                  Intelligence Report
-```
+The Streamlit app builds the LangGraph workflow and presents each stage as it
+completes. Research planning and synthesis use Groq, with web evidence gathered
+through DDGS. Analysis and uncertainty extraction can optionally use Ollama;
+the other model stages use Groq. Scenario generation and its red-team critique
+are performed within the final workflow node.
 
----
+```mermaid
+flowchart TD
+    User --> UI["Streamlit app (app.py)"]
+    UI --> Graph["LangGraph workflow"]
 
-## Multi-Agent Workflow
+    subgraph Pipeline["Sequential workflow"]
+        Entity["Provisional entity resolution"]
+        Research["Research questions and synthesis"]
+        Reconcile["Entity reconciliation"]
+        Analyze["Grounded analysis"]
+        Uncertainties["Key uncertainties"]
+        Scenarios["Scenario generation"]
+        Critic["Red-team critique"]
 
-Infera uses functional agents rather than simulated personas.
+        Entity --> Research --> Reconcile --> Analyze
+        Analyze --> Uncertainties --> Scenarios --> Critic
+    end
 
-| Agent | Responsibility |
-|-------|----------------|
-| Research Agent | Collects relevant evidence |
-| Planner Agent | Breaks the task into analytical steps |
-| Claim Processor | Extracts factual claims |
-| Entity Processor | Identifies entities and relationships |
-| Knowledge Graph Builder | Organizes structured information |
-| Contradiction Analyzer | Detects conflicting evidence |
-| Scenario Generator | Produces plausible future outcomes |
-| Critic Agent | Reviews assumptions and reasoning |
-| Report Generator | Produces the final analytical report |
+    Graph --> Entity
+    Research --> Search["DDGS web search"]
+    Research --> Groq["Groq API"]
+    Entity --> Groq
+    Reconcile --> Groq
+    Analyze -. default .-> Groq
+    Uncertainties -. default .-> Groq
+    Analyze -. optional local routing .-> Ollama["Ollama"]
+    Uncertainties -. optional local routing .-> Ollama
+    Critic --> Groq
 
-Each agent performs a single responsibility and communicates through structured state.
-
----
-
-## Project Structure
-
-```
-Infera-Engine/
-
-├── core/
-│   ├── agents/
-│   ├── nodes/
-│   ├── tools/
-│   ├── graph.py
-│   ├── models.py
-│   └── state.py
-│
-├── ui/
-├── utils/
-│
-├── app.py
-├── requirements.txt
-└── README.md
+    Critic --> UI
+    UI --> Memory["Local JSON runs (memory/)"]
 ```
 
----
+## Docker
 
-## Technology Stack
+Create the `.env` file as described above, then run:
 
-### Backend
+```bash
+docker compose up --build
+```
 
-- Python
-- FastAPI
+Open `http://localhost:8501`. The compose configuration passes `.env` values
+into the container.
 
-### Agent Orchestration
+## Development and CI
 
-- LangGraph
+Run the same checks locally with:
 
-### Language Models
+```bash
+python -m ruff check .
+python -m ruff format --check .
+python -m pytest
+python -m pip check
+```
 
-- Groq API
-- Llama 3
+GitHub Actions runs linting, formatting, tests, and dependency validation for
+pull requests and pushes to `main` or `master` across Python 3.11, 3.12, and
+3.13. CodeQL scans Python on pushes, pull requests, and a weekly schedule.
+Dependabot checks Python and GitHub Actions dependencies weekly. Pushing a
+version tag such as `v0.1.0` publishes a container image to GitHub Container
+Registry.
 
-### Knowledge Representation
+## Project layout
 
-- NetworkX
-
-### Frontend
-
-- React
-- TypeScript
-
----
-
-## Current Capabilities
-
-- Multi-agent reasoning workflow
-- Evidence collection
-- Search integration
-- Task planning
-- Scenario generation
-- Critical review
-- Structured reporting
-
----
-
-## Planned Features
-
-- Claim extraction
-- Entity linking
-- Knowledge graph visualization
-- Narrative clustering
-- Contradiction analysis
-- Confidence estimation
-- Interactive evidence explorer
-- Timeline analysis
-- Exportable analytical reports
-
----
-
-## Design Principles
-
-- Evidence before conclusions
-- Independent functional agents
-- Explainable reasoning
-- Traceable outputs
-- Modular architecture
-- Deterministic processing where practical
-
----
+```text
+core/
+  agents/       Research planner, researcher, entity resolver, critic
+  nodes/        LangGraph workflow stages
+  tools/        Web search
+  graph.py      Workflow construction
+  models.py     Groq/Ollama configuration and Groq token-budget handling
+  state.py      Workflow state and structured output schemas
+ui/             Streamlit presentation components and styles
+utils/          Application utilities
+tests/          Automated tests
+app.py          Streamlit application entry point
+pyproject.toml  Dependencies and tool configuration
+```
 
 ## Disclaimer
 
-Infera Engine is an analytical reasoning framework intended to assist investigation and decision support. Forecasts are generated from available evidence and should be interpreted as analytical scenarios rather than definitive predictions.
-
----
+Infera Engine supports research and decision-making; it does not guarantee that
+web sources are complete or that forecasts will occur. Treat generated
+scenarios as analysis, verify important claims against their sources, and do
+not use them as a substitute for professional advice.
 
 ## License
 
-MIT License
+MIT License. See [LICENSE](./LICENSE).

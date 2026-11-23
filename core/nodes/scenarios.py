@@ -1,12 +1,8 @@
 import difflib
 
-from langchain_core.messages import HumanMessage
-
-from core.agents.base_rate import estimate_base_rate_for_scenario
 from core.agents.critic import critique_scenarios
 from core.agents.entity import entity_card_to_context
-from core.models import get_groq_llm
-from core.scoring import adjust_for_base_rate, compute_score, score_to_label
+from core.models import get_groq_llm, invoke_structured_model
 from core.state import InferaState, ScenarioSet
 
 
@@ -32,64 +28,46 @@ def generate_scenarios(state: InferaState) -> dict:
 RESEARCH BRIEF:
 {research}
 
-STRICT RULES:
-- forecast_statement must NOT restate research facts. Infer second-order effects.
-- time_horizon: 3-6mo | 6-12mo | 1-3yr
-- Exactly 3 scenarios. At least one must be resistance/pushback/failure.
-- Use only facts and sources present in the research brief; do not invent evidence.
-- Keep each forecast_statement to one concise sentence (max 60 words).
-- Include at most 3 concise items in each evidence list and inferred_from (max 20 words each).
-- Provide 3-4 evidence factors; keep each factor and reason to one short sentence.
-- Avoid quotation marks inside generated text; paraphrase quoted phrases.
-- Do NOT assign probability_label or numeric score.
+Generate exactly 3 substantive forward-looking scenarios, including one resistance
+or failure case. Use only research facts, with forecasts that infer rather than
+restate. Use horizons 3-6mo, 6-12mo, or 1-3yr. For each scenario, provide 3-6
+evidence factors, explain each factor, and include relevant evidence for and against
+the forecast. Include up to 5 items in inferred_from, evidence_for, and
+evidence_against. Do not assign overall confidence or probability.
 
-SCORING RULE (critical):
+EVIDENCE FACTOR RULE:
 Each factor is relative to THIS scenario's own forecast_statement.
 - supports_forecast=true if the factor makes THIS claim more likely
 - supports_forecast=false if it makes THIS claim less likely
 Example: "industry lobbying history"
   - for a SMOOTH REFORM scenario → supports_forecast=false
   - for a PUSHBACK scenario → supports_forecast=true
-strength: strong | moderate | weak
+strength describes the evidence factor only: strong | moderate | weak
 
 Return only a valid JSON object matching the ScenarioSet fields. Do not use Markdown.
 """
 
-    structured = llm.with_structured_output(ScenarioSet, method="json_mode")
-    draft = structured.invoke([HumanMessage(content=draft_prompt)])
+    draft = invoke_structured_model(
+        llm,
+        ScenarioSet,
+        draft_prompt,
+        max_output_tokens=3000,
+    )
 
     finalized = []
     text_parts = []
 
     for s in draft.scenarios:
-        br = estimate_base_rate_for_scenario(
-            entity_card=entity_card,
-            forecast_statement=s.forecast_statement,
-            time_horizon=s.time_horizon,
-        )
-
-        score = compute_score(s.score_components)
-        label = score_to_label(score)
-        label, note = adjust_for_base_rate(label, br.estimated_base_rate_pct)
-
-        s.score = score
-        s.probability_label = label
-        s.probability_reason = (
-            f"{s.probability_reason} "
-            f"[Base rate {br.estimated_base_rate_pct}% — {br.reference_class}] {note}"
-        ).strip()
-
         if is_near_duplicate(s.forecast_statement, research):
-            s.probability_reason += " [Warning: may be too close to research.]"
+            forecast_warning = " [Warning: may be too close to research.]"
+        else:
+            forecast_warning = ""
 
         finalized.append(s)
 
         text_parts.append(f"**{s.scenario_name}**\n")
         text_parts.append(f"Time horizon: `{s.time_horizon}`\n")
-        text_parts.append(f"Forecast: {s.forecast_statement}\n\n")
-        text_parts.append(
-            f"Probability: `{s.probability_label}` (score={s.score}) — {s.probability_reason}\n\n"
-        )
+        text_parts.append(f"Forecast: {s.forecast_statement}{forecast_warning}\n\n")
         text_parts.append(f"**Inferred from:** {', '.join(s.inferred_from)}\n")
         text_parts.append(f"**Evidence for:** {', '.join(s.evidence_for)}\n")
         text_parts.append(f"**Evidence against:** {', '.join(s.evidence_against)}\n")
@@ -99,7 +77,6 @@ Return only a valid JSON object matching the ScenarioSet fields. Do not use Mark
             direction = "supports" if f.supports_forecast else "opposes"
             factor_lines.append(f"{f.factor} ({direction}, {f.strength})")
         text_parts.append(f"**Factors:** {'; '.join(factor_lines)}\n")
-        text_parts.append(f"**Comparable cases:** {', '.join(br.comparable_cases or [])}\n")
         text_parts.append("\n---\n\n")
 
     scenarios_text = "".join(text_parts)

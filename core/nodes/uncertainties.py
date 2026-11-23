@@ -1,6 +1,4 @@
-from langchain_core.messages import HumanMessage
-
-from core.models import get_low_power_llm
+from core.models import get_low_power_llm, invoke_model
 from core.state import InferaState
 
 
@@ -29,5 +27,9 @@ Instructions:
 - Format as a clean numbered list. No extra commentary.
 """
 
-    response = llm.invoke([HumanMessage(content=prompt)])
+    response = invoke_model(
+        llm,
+        prompt,
+        max_output_tokens=350,
+    )
     return {"uncertainties": response.content, "current_step": "uncertainties_complete"}

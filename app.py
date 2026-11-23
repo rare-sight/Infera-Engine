@@ -31,7 +31,7 @@ with st.sidebar:
     st.markdown("- Entity Reconcile")
     st.markdown("- Analyst")
     st.markdown("- Uncertainties")
-    st.markdown("- Scenario + per-scenario Base Rate + Critic")
+    st.markdown("- Scenarios + Critic")
     st.markdown("---")
     st.caption("v0.6 • Grounded Forecasting")
 
@@ -109,6 +109,11 @@ if run_btn:
         }
 
         try:
+            st.info(
+                "Groq requests share a rolling 8,000-token-per-minute budget. "
+                "Calls proceed immediately when budget is available and wait only "
+                "when recent input and output tokens use the budget."
+            )
             # 1. Entity (provisional)
             with status_box.container():
                 render_step_status("entity")
@@ -124,7 +129,6 @@ if run_btn:
                     f"**Jurisdiction:** {card.get('jurisdiction', 'N/A')}\n\n"
                     f"**Role:** {card.get('role_or_context', 'N/A')}\n\n"
                     f"**Note:** {card.get('disambiguation_note', '')}\n\n"
-                    f"**Confidence:** {card.get('confidence', 'N/A')}\n\n"
                     f"**Stage:** {card.get('resolution_stage', 'provisional')}"
                 )
                 render_section("ENTITY CARD (Provisional)", entity_text)
@@ -154,7 +158,6 @@ if run_btn:
                     f"**Jurisdiction:** {card.get('jurisdiction', 'N/A')}\n\n"
                     f"**Role:** {card.get('role_or_context', 'N/A')}\n\n"
                     f"**Note:** {card.get('disambiguation_note', '')}\n\n"
-                    f"**Confidence:** {card.get('confidence', 'N/A')}\n\n"
                     f"**Stage:** {card.get('resolution_stage', 'reconciled')}"
                 )
                 render_section("ENTITY CARD (Reconciled)", entity_text)
@@ -179,12 +182,11 @@ if run_btn:
             with uncertainties_box.container():
                 render_section("KEY UNCERTAINTIES", state["uncertainties"])
 
-            # 6. Scenarios (includes per-scenario base rate + critic)
+            # 6. Scenarios and critic
             with status_box.container():
                 render_step_status("scenarios")
             with log_box.container():
                 render_agent_log("Scenario Agent drafting forecasts...")
-                render_agent_log("Computing per-scenario base rates + scores...")
                 render_agent_log("Critic Agent challenging scenarios...")
             result = graph.nodes["scenarios"].invoke(state)
             state.update(result)

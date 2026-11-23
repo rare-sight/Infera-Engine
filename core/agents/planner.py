@@ -1,20 +1,20 @@
-from langchain_core.messages import HumanMessage
-
-from core.models import get_groq_llm
+from core.models import get_groq_llm, invoke_model
 
 
 def plan_research(topic: str) -> list[str]:
-    """Planner Agent: Decides the key research questions."""
-    llm = get_groq_llm()
-
-    prompt = f"""You are a senior intelligence planner.
-Break down the following developing topic into 3 focused research questions that will help generate high-quality future scenarios.
+    """Use a model to select focused, topic-specific research questions."""
+    prompt = f"""Break this topic into 3 focused investigative research questions.
+Cover recent developments, key actors and decisions, and evidence about outcomes or risks.
+Return only the questions, one per line.
 
 Topic: {topic}
-
-Return only the 3 questions, one per line. Make them specific and investigative.
 """
-
-    response = llm.invoke([HumanMessage(content=prompt)])
-    questions = [q.strip() for q in response.content.strip().split("\n") if q.strip()]
+    response = invoke_model(get_groq_llm(), prompt, max_output_tokens=220)
+    questions = [
+        line.strip().removeprefix("-").removeprefix("•").strip()
+        for line in response.content.splitlines()
+    ]
+    questions = [question for question in questions if question]
+    if not questions:
+        raise ValueError("Research planner returned no questions.")
     return questions[:3]
