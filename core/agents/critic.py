@@ -1,6 +1,4 @@
-from langchain_core.messages import HumanMessage
-
-from core.models import get_groq_llm
+from core.models import get_groq_llm, invoke_model
 
 
 def critique_scenarios(topic: str, scenarios_text: str, research: str) -> str:
@@ -31,10 +29,12 @@ Then propose one refined strongest scenario as plain analysis:
 - refinement rationale
 
 STRICT RULE:
-Do NOT write probability labels (High/Medium/Low), percentages, or scores.
-Those are computed only by the scoring pipeline, not by you.
-If you want to express confidence, describe the evidence factors instead.
+Do NOT assess confidence or assign probabilities, percentages, or scores.
 """
 
-    response = llm.invoke([HumanMessage(content=prompt)])
+    response = invoke_model(
+        llm,
+        prompt,
+        max_output_tokens=700,
+    )
     return response.content

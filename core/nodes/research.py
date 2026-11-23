@@ -13,7 +13,6 @@ def research_topic(state: InferaState) -> dict:
         "jurisdiction": "unknown",
         "role_or_context": "unknown",
         "disambiguation_note": "",
-        "confidence": "low",
         "resolution_stage": "provisional",
     }
     entity_ctx = entity_card_to_context(entity_raw)

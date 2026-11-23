@@ -1,7 +1,5 @@
-from langchain_core.messages import HumanMessage
-
 from core.agents.entity import entity_card_to_context
-from core.models import get_groq_llm
+from core.models import get_groq_llm, invoke_structured_model
 from core.state import BaseRateEstimate
 
 
@@ -30,5 +28,6 @@ RULES:
 
 Return only a valid JSON object matching the BaseRateEstimate fields. Do not use Markdown.
 """
-    structured = llm.with_structured_output(BaseRateEstimate, method="json_mode")
-    return structured.invoke([HumanMessage(content=prompt)])
+    return invoke_structured_model(
+        llm, BaseRateEstimate, prompt, max_output_tokens=220
+    )
