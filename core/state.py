@@ -9,9 +9,7 @@ class EntityCard(BaseModel):
         validation_alias=AliasChoices("entity_type", "type")
     )
     jurisdiction: str
-    role_or_context: str = Field(
-        validation_alias=AliasChoices("role_or_context", "role")
-    )
+    role_or_context: str = Field(validation_alias=AliasChoices("role_or_context", "role"))
     disambiguation_note: str = Field(
         default="",
         validation_alias=AliasChoices("disambiguation_note", "note"),
@@ -61,6 +59,7 @@ class Scenario(BaseModel):
     evidence_for: list[str] = Field(default_factory=list)
     evidence_against: list[str] = Field(default_factory=list)
     score_components: ScoreComponents
+
     @model_validator(mode="before")
     @classmethod
     def normalize_evidence(cls, value):
@@ -84,10 +83,7 @@ class Scenario(BaseModel):
                 value["evidence_for"] = [
                     factor.factor if isinstance(factor, EvidenceFactor) else factor["factor"]
                     for factor in factors
-                    if (
-                        isinstance(factor, EvidenceFactor)
-                        and factor.supports_forecast is True
-                    )
+                    if (isinstance(factor, EvidenceFactor) and factor.supports_forecast is True)
                     or (
                         isinstance(factor, dict)
                         and factor.get("supports_forecast") is True
@@ -98,10 +94,7 @@ class Scenario(BaseModel):
                 value["evidence_against"] = [
                     factor.factor if isinstance(factor, EvidenceFactor) else factor["factor"]
                     for factor in factors
-                    if (
-                        isinstance(factor, EvidenceFactor)
-                        and factor.supports_forecast is False
-                    )
+                    if (isinstance(factor, EvidenceFactor) and factor.supports_forecast is False)
                     or (
                         isinstance(factor, dict)
                         and factor.get("supports_forecast") is False

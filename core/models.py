@@ -6,9 +6,9 @@ from math import ceil
 from threading import Lock
 from time import monotonic, sleep
 
+from langchain_core.messages import HumanMessage
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
-from langchain_core.messages import HumanMessage
 from pydantic import BaseModel, ValidationError
 
 DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
@@ -156,7 +156,9 @@ def invoke_structured_model(
                 decoder = json.JSONDecoder()
                 start = text.find("{")
                 if start < 0:
-                    raise ValueError("Model response did not contain a JSON object.")
+                    raise ValueError(
+                        "Model response did not contain a JSON object."
+                    ) from parse_error
                 if start == 0:
                     raise parse_error
                 data, _ = decoder.raw_decode(text[start:])

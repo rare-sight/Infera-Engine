@@ -3,7 +3,6 @@ import re
 from ddgs import DDGS
 from langchain_core.tools import tool
 
-
 _SEARCH_STOP_WORDS = {
     "a",
     "about",

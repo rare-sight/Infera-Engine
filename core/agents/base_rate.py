@@ -28,6 +28,4 @@ RULES:
 
 Return only a valid JSON object matching the BaseRateEstimate fields. Do not use Markdown.
 """
-    return invoke_structured_model(
-        llm, BaseRateEstimate, prompt, max_output_tokens=220
-    )
+    return invoke_structured_model(llm, BaseRateEstimate, prompt, max_output_tokens=220)

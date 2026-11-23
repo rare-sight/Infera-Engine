@@ -10,7 +10,10 @@ Return only the questions, one per line.
 Topic: {topic}
 """
     response = invoke_model(get_groq_llm(), prompt, max_output_tokens=220)
-    questions = [line.strip("- •\t ") for line in response.content.splitlines()]
+    questions = [
+        line.strip().removeprefix("-").removeprefix("•").strip()
+        for line in response.content.splitlines()
+    ]
     questions = [question for question in questions if question]
     if not questions:
         raise ValueError("Research planner returned no questions.")
