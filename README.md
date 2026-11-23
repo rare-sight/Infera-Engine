@@ -88,6 +88,47 @@ After a run, the app attempts to save the research and analysis as JSON files
 under `memory/`. These files are local application data; do not commit sensitive
 or private research.
 
+## Architecture
+
+The Streamlit app builds the LangGraph workflow and presents each stage as it
+completes. Research planning and synthesis use Groq, with web evidence gathered
+through DDGS. Analysis and uncertainty extraction can optionally use Ollama;
+the other model stages use Groq. Scenario generation and its red-team critique
+are performed within the final workflow node.
+
+```mermaid
+flowchart TD
+    User --> UI["Streamlit app (app.py)"]
+    UI --> Graph["LangGraph workflow"]
+
+    subgraph Pipeline["Sequential workflow"]
+        Entity["Provisional entity resolution"]
+        Research["Research questions and synthesis"]
+        Reconcile["Entity reconciliation"]
+        Analyze["Grounded analysis"]
+        Uncertainties["Key uncertainties"]
+        Scenarios["Scenario generation"]
+        Critic["Red-team critique"]
+
+        Entity --> Research --> Reconcile --> Analyze
+        Analyze --> Uncertainties --> Scenarios --> Critic
+    end
+
+    Graph --> Entity
+    Research --> Search["DDGS web search"]
+    Research --> Groq["Groq API"]
+    Entity --> Groq
+    Reconcile --> Groq
+    Analyze -. default .-> Groq
+    Uncertainties -. default .-> Groq
+    Analyze -. optional local routing .-> Ollama["Ollama"]
+    Uncertainties -. optional local routing .-> Ollama
+    Critic --> Groq
+
+    Critic --> UI
+    UI --> Memory["Local JSON runs (memory/)"]
+```
+
 ## Docker
 
 Create the `.env` file as described above, then run:
